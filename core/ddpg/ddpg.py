@@ -4,20 +4,38 @@ from torch import optim
 from . import Critic, Actor, Memory
 
 class Agent:
+    """
+    DDPG Agent class
+    
+    Arguments:
+        critic_arch: cnn feature extractor for critic network
+        actor_arch: cnn feature extractor for actor network
+        critic_hidden_size: # channels for feature maps from critic_arch
+        actor_hidden_size: # channels for feature maps from actor_arch
+        critic_learning_rate: learning rate for critic network
+        actor_learning_rate: learning rate for actor network
+        gamma: discount factor
+        tau: update rate for target networks
+    """
     def __init__(self,
                 critic_arch, actor_arch,
-                hidden_size, action_size,
+                critic_hidden_size, actor_hidden_size,
+                action_size,
                 critic_learning_rate=1e-3,
                 actor_learning_rate=1e-3,
                 gamma=0.99, tau=1e-2):
         self.critic = Critic(arch=critic_arch,
-                             hidden_size=hidden_size,
+                             hidden_size=critic_hidden_size,
                              action_size=action_size)
-        self.actor = Actor(arch=actor_arch, action_size=action_size)
+        self.actor = Actor(arch=actor_arch,
+                           hidden_size=actor_hidden_size,
+                           action_size=action_size)
         self.critic_target = Critic(arch=critic_arch,
-                             hidden_size=hidden_size,
+                             hidden_size=critic_hidden_size,
                              action_size=action_size)
-        self.actor_target = Actor(arch=actor_arch, action_size=action_size)
+        self.actor_target = Actor(arch=actor_arch,
+                                  hidden_size=actor_hidden_size,
+                                  action_size=action_size)
 
         # initialize target networks
         for target_param, param in zip(self.actor_target.parameters(), self.actor.parameters()):
