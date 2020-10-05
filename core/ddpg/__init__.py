@@ -5,6 +5,13 @@ import random
 from collections import deque
 
 class Critic(nn.Module):
+    """
+    Critic Network wrapper
+    Arguments:
+        arch (nn.Module):  cnn feature extractor
+        hidden_size (int): # channels of the feature map
+        action_size (int): # dim of action
+    """
     def __init__(self, arch, hidden_size, action_size):
         super(Critic, self).__init__()
         self.core = arch
@@ -20,11 +27,18 @@ class Critic(nn.Module):
         
 
 class Actor(nn.Module):
-    def __init__(self, arch, action_size):
+    """
+    Actor Network wrapper
+    Arguments:
+        arch (nn.Module):  cnn feature extractor
+        hidden_size (int): # channels of the feature map
+        action_size (int): # dim of action
+    """
+    def __init__(self, arch, hidden_size, action_size):
         super(Actor, self).__init__()
         self.core = arch
         self.pool = nn.AdaptiveAvgPool2d(1)
-        self.head = nn.Sequential(nn.Linear(hidden_size + action_size, hidden_size), nn.ReLU(),
+        self.head = nn.Sequential(nn.Linear(hidden_size, hidden_size), nn.ReLU(),
                                   nn.Linear(hidden_size, action_size))
 
     def forward(self, state):
@@ -34,6 +48,12 @@ class Actor(nn.Module):
         return x.sigmoid()
 
 class Memory:
+    """
+    Replay Buffer
+    
+    Arguments:
+        max_size: length of the memory
+    """
     def __init__(self, max_size):
         self.buffer = deque(maxlen=max_size)
 
