@@ -78,7 +78,7 @@ for episode in range(N_EPISODE):
             break
     
     rewards.append(episode_reward)
-    avg_rewards
+    avg_rewards.append(np.mean(rewards))
 
 torch.save(agent.critic.state_dict(), 'critic.pth')
 torch.save(agent.actor.state_dict(), 'actor.pth')
