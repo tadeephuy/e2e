@@ -1,3 +1,4 @@
+import os, sys; sys.path.append(os.path.dirname(os.path.realpath(__file__)))
 import torch
 from torch import nn
 import numpy as np
@@ -14,14 +15,17 @@ class Critic(nn.Module):
     """
     def __init__(self, arch, hidden_size, action_size):
         super(Critic, self).__init__()
+        self.transistion = nn.Conv2d(4, 3, 1) # from 4 channels to 3  channels
         self.core = arch
         self.pool = nn.AdaptiveAvgPool2d(1)
         self.head = nn.Sequential(nn.Linear(hidden_size + action_size, hidden_size), nn.ReLU(),
                                   nn.Linear(hidden_size, 1))
 
     def forward(self, state, action):
+        state = self.transistion(state)
         state = self.core(state)
         state = self.pool(state)
+        state = nn.Flatten()(state)
         x = torch.cat([state, action], dim=1)
         return self.head(x)
         
@@ -36,13 +40,15 @@ class Actor(nn.Module):
     """
     def __init__(self, arch, hidden_size, action_size):
         super(Actor, self).__init__()
+        self.transistion = nn.Conv2d(4, 3, 1) # from 4 channels to 3  channels
         self.core = arch
         self.pool = nn.AdaptiveAvgPool2d(1)
-        self.head = nn.Sequential(nn.Linear(hidden_size, hidden_size), nn.ReLU(),
+        self.head = nn.Sequential(nn.Flatten(), nn.Linear(hidden_size, hidden_size), nn.ReLU(),
                                   nn.Linear(hidden_size, action_size))
 
     def forward(self, state):
-        x = self.core(state)
+        x = self.transistion(state)
+        x = self.core(x)
         x = self.pool(x)
         x = self.head(x)
         return x.sigmoid()
@@ -87,9 +93,9 @@ class OUNoise(object):
         self.max_sigma    = max_sigma
         self.min_sigma    = min_sigma
         self.decay_period = decay_period
-        self.action_dim   = action_space.shape[0]
-        self.low          = action_space.low
-        self.high         = action_space.high
+        self.action_dim   = action_space # action_space.shape[0]
+        self.low          = 0 #action_space.low
+        self.high         = 1 # action_space.high
         self.reset()
         
     def reset(self):
